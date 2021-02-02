@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const https = require('https');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use('/public', express.static(__dirname + '/public'));
@@ -9,10 +10,39 @@ app.get('/', function(req, res){
     res.sendFile(__dirname + '/signUp.html')
 })
 app.post('/', function(req, res){
-    var firstName = req.body.fName;
-    var lastName = req.body.lName;
-    var eMail = req.body.inputEmail;
-    console.log(firstName, lastName, eMail);
+    const firstName = req.body.fName;
+    const lastName = req.body.lName;
+    const eMail = req.body.inputEmail;
+
+
+    const data = {
+        members: [
+            {
+                email_address: eMail,
+                status: 'subscribed',
+                merge_fields: {
+                    FNAME: firstName,
+                    LNAME: lastName
+                }
+            }
+        ]
+    };
+
+    const jsonData = JSON.stringify(data);
+    const url = 'https://us7.api.mailchimp.com/3.0/lists/yyy';
+    const options = {
+        method: 'POST',
+        auth: 'andresb:xxx'
+    }
+
+    const request = https.request(url, options, function(response){
+        response.on('data', function(data){
+            console.log(JSON.parse(data));
+        })
+    });
+
+    request.write(jsonData);
+    request.end();
 })
 
 
@@ -26,4 +56,6 @@ app.listen(3003, function(){
 
 
 //API Key
-// f21a030d38c305f897cc7db7fb73c222-us7
+//  xxx
+//List ID
+// yyy
